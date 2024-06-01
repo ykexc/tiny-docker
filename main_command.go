@@ -29,7 +29,7 @@ var runCommand = cli.Command{
 		}
 		cmd := context.Args().Get(0)
 		tty := context.Bool("it")
-		Run(tty, cmd)
+		Run(tty, []string{cmd})
 		return nil
 	},
 }
@@ -45,7 +45,7 @@ var initCommand = cli.Command{
 		log.Infof("init come on")
 		cmd := context.Args().Get(0)
 		log.Infof("command: %s", cmd)
-		err := container.RunContainerInitProcess(cmd, nil)
+		err := container.RunContainerInitProcess()
 		return err
 	},
 }
