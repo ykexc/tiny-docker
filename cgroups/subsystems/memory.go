@@ -49,5 +49,5 @@ func (s *MemorySubsystem) Remove(cgroupPath string) error {
 	if err != nil {
 		return err
 	}
-	return os.Remove(subsysCgroupPath)
+	return os.RemoveAll(subsysCgroupPath)
 }

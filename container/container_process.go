@@ -35,5 +35,6 @@ func NewParentProcess(tty bool) (*exec.Cmd, *os.File) {
 		cmd.Stderr = os.Stderr
 	}
 	cmd.ExtraFiles = []*os.File{rp}
+	cmd.Dir = "/root/ubuntu-base-16.04.6-base-amd64"
 	return cmd, wp
 }
