@@ -29,6 +29,10 @@ var runCommand = cli.Command{
 			Name:  "cpuset",
 			Usage: "cpuset limit,e.g.: -cpuset 100m",
 		},
+		cli.StringFlag{
+			Name:  "v",
+			Usage: "volume,e.g.: -v /ect/conf:/etc/conf",
+		},
 	},
 	/*
 		这里是run命令执行的真正函数。
@@ -53,7 +57,9 @@ var runCommand = cli.Command{
 
 		log.Info("resConf:", resConf)
 
-		Run(tty, cmdArray, resConf)
+		volume := context.String("v")
+
+		Run(tty, cmdArray, resConf, volume)
 		return nil
 	},
 }
