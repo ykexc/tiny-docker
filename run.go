@@ -31,8 +31,11 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 	_ = cgroupManager.Apply(parent.Process.Pid, res)
 	// 在子进程创建后才能通过pipe来发送参数
 	sendInitCommand(comArray, wp)
-	_ = parent.Wait()
-	container.DeleteWorkSpace("/root", volume)
+	// 如果是tty，那么父进程等待，就是前台运行，否则就是跳过，实现后台运行
+	if tty {
+		_ = parent.Wait()
+		container.DeleteWorkSpace("/root/", volume)
+	}
 }
 
 // 向管道中写
