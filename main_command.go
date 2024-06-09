@@ -37,6 +37,10 @@ var runCommand = cli.Command{
 			Name:  "d",
 			Usage: "detach container,run background",
 		},
+		cli.StringFlag{
+			Name:  "name",
+			Usage: "container name，e.g.: -name mycontainer",
+		},
 	},
 	/*
 		这里是run命令执行的真正函数。
@@ -73,8 +77,8 @@ var runCommand = cli.Command{
 		log.Info("resConf:", resConf)
 
 		volume := context.String("v")
-
-		Run(tty, cmdArray, resConf, volume)
+		containerName := context.String("name")
+		Run(tty, cmdArray, resConf, volume, containerName)
 		return nil
 	},
 }
@@ -104,6 +108,28 @@ var commitCommand = cli.Command{
 		}
 		imageName := context.Args().Get(0)
 		commitContainer(imageName)
+		return nil
+	},
+}
+
+var listCommand = cli.Command{
+	Name:  "ps",
+	Usage: "List all containers",
+	Action: func(context *cli.Context) error {
+		ListContainers()
+		return nil
+	},
+}
+
+var logsCommand = cli.Command{
+	Name:  "logs",
+	Usage: "Tail logs of a container",
+	Action: func(context *cli.Context) error {
+		if len(context.Args()) < 1 {
+			return fmt.Errorf("please input your container name")
+		}
+		containerName := context.Args().Get(0)
+		logContainer(containerName)
 		return nil
 	},
 }

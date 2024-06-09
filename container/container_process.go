@@ -10,9 +10,26 @@ import (
 )
 
 const (
-	lower    = "ubuntu-base-16.04.6-base-amd64"
-	lowerTar = "ubuntu-base-16.04.6-base-amd64.tar"
+	lower         = "ubuntu-base-16.04.6-base-amd64"
+	lowerTar      = "ubuntu-base-16.04.6-base-amd64.tar"
+	RUNNING       = "running"
+	STOP          = "stopped"
+	Exit          = "exited"
+	InfoLoc       = "/var/lib/tiny-docker/containers/"
+	InfoLocFormat = InfoLoc + "%s/"
+	ConfigName    = "config.json"
+	IDLength      = 10
+	LogFile       = "%s-json.log"
 )
+
+type Info struct {
+	Pid         string `json:"pid"`         // 容器的init进程在宿主机上的 PID
+	Id          string `json:"id"`          // 容器Id
+	Name        string `json:"name"`        // 容器名
+	Command     string `json:"command"`     // 容器内init运行命令
+	CreatedTime string `json:"createdTime"` // 创建时间
+	Status      string `json:"status"`      // 容器的状态
+}
 
 // NewParentProcess 构建 command 用于启动一个新进程
 /*
@@ -22,7 +39,7 @@ const (
 3.下面的clone参数就是去fork出来一个新进程，并且使用了namespace隔离新创建的进程和外部环境。
 4.如果用户指定了-it参数，就需要把当前进程的输入输出导入到标准输入输出上
 */
-func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File) {
+func NewParentProcess(tty bool, volume, containerId string) (*exec.Cmd, *os.File) {
 
 	// 创建匿名管道用于传递参数，将readPipe作为子进程的ExtraFiles，子进程从readPipe中读取参数
 	// 父进程中则通过writePipe将参数写入管道
@@ -40,6 +57,21 @@ func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File) {
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+	} else {
+		// 对于后台容器,将stdout,stderr重定向到日志文件中
+		dirPath := fmt.Sprintf(InfoLocFormat, containerId)
+		if err := os.MkdirAll(dirPath, 0755); err != nil {
+			log.Errorf("NewParentProcess mkdir %s error %v", dirPath, err)
+			return nil, nil
+		}
+		stdLogFilePath := dirPath + GetLogfile(containerId)
+		stdLogFile, err := os.Create(stdLogFilePath)
+		if err != nil {
+			log.Errorf("NewParentProcess create file %s error %v", stdLogFilePath, err)
+			return nil, nil
+		}
+		cmd.Stdout = stdLogFile
+		cmd.Stderr = stdLogFile
 	}
 	cmd.ExtraFiles = []*os.File{rp}
 	rootPath := "/root"
