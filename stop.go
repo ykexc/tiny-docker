@@ -59,3 +59,32 @@ func getInfoByContainerId(containerId string) (*container.Info, error) {
 	}
 	return &info, nil
 }
+
+func removeContainer(containerId string, force bool) {
+	containerInfo, err := getInfoByContainerId(containerId)
+	if err != nil {
+		log.Errorf("Get container %s info error %v", containerId, err)
+		return
+	}
+
+	switch containerInfo.Status {
+	case container.STOP:
+		dirPath := fmt.Sprintf(container.InfoLocFormat, containerId)
+		if err := os.RemoveAll(dirPath); err != nil {
+			log.Errorf("Remove file %s error %v", dirPath, err)
+			return
+		}
+	case container.RUNNING:
+		if !force {
+			log.Errorf("Couldn't remove running container [%s], Stop the container before attempting removal or"+
+				" force remove", containerId)
+			return
+		}
+		log.Infof("force delete running container [%s]", containerId)
+		stopContainer(containerId)
+		removeContainer(containerId, force)
+	default:
+		log.Errorf("Couldn't remove container,invalid status %s", containerInfo.Status)
+		return
+	}
+}
