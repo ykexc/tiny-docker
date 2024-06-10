@@ -1,12 +1,10 @@
 package container
 
 import (
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 	"tiny-docker/constant"
 )
 
@@ -40,19 +38,4 @@ func unmountVolume(mntPath, containerPath string) {
 	if err := cmd.Run(); err != nil {
 		log.Errorf("Umount volume failed. %v", err)
 	}
-}
-
-// volumeExtract解析
-func volumeExtract(volume string) (sourcePath, destinationPath string, err error) {
-	parts := strings.Split(volume, ":")
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid volume [%s], must split by `:`", volume)
-	}
-	sourcePath, destinationPath = parts[0], parts[1]
-
-	if sourcePath == "" || destinationPath == "" {
-		return "", "", fmt.Errorf("invalid volume [%s], path can't be empty", volume)
-	}
-
-	return sourcePath, destinationPath, nil
 }

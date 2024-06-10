@@ -12,7 +12,7 @@ import (
 var runCommand = cli.Command{
 	Name: "run",
 	Usage: `Create a container with namespace and cgroups limit
-			mydocker run -it [command]`,
+			tinydocker run -it [command]`,
 	Flags: []cli.Flag{
 		cli.BoolFlag{
 			Name:  "it", // 简单起见，这里把 -i 和 -t 参数合并成一个
@@ -57,6 +57,10 @@ var runCommand = cli.Command{
 		for _, arg := range context.Args() {
 			cmdArray = append(cmdArray, arg)
 		}
+
+		imageName := cmdArray[0]
+		cmdArray = cmdArray[1:]
+
 		tty := context.Bool("it")
 		detach := context.Bool("d")
 
@@ -79,7 +83,7 @@ var runCommand = cli.Command{
 
 		volume := context.String("v")
 		containerName := context.String("name")
-		Run(tty, cmdArray, resConf, volume, containerName)
+		Run(tty, cmdArray, resConf, volume, containerName, imageName)
 		return nil
 	},
 }
@@ -102,14 +106,14 @@ var initCommand = cli.Command{
 
 var commitCommand = cli.Command{
 	Name:  "commit",
-	Usage: "Commit container process image",
+	Usage: "commit container to image,e.g. mydocker commit 123456789 myimage",
 	Action: func(context *cli.Context) error {
-		if len(context.Args()) < 1 {
+		if len(context.Args()) < 2 {
 			return fmt.Errorf("missing image name")
 		}
-		imageName := context.Args().Get(0)
-		commitContainer(imageName)
-		return nil
+		containerId := context.Args().Get(0)
+		imageName := context.Args().Get(1)
+		return commitContainer(containerId, imageName)
 	},
 }
 
@@ -185,6 +189,28 @@ var rmCommand = cli.Command{
 		containerId := context.Args().Get(0)
 		force := context.Bool("f")
 		removeContainer(containerId, force)
+		return nil
+	},
+}
+
+var imagesCommand = cli.Command{
+	Name:  "images",
+	Usage: "List all images",
+	Action: func(context *cli.Context) error {
+		ListImages()
+		return nil
+	},
+}
+
+var rmiCommand = cli.Command{
+	Name:  "rmi",
+	Usage: "Remove s image e.g. tinydocker rmi nginx",
+	Action: func(context *cli.Context) error {
+		if len(context.Args()) < 1 {
+			return fmt.Errorf("missing image name")
+		}
+		imageName := context.Args().Get(0)
+		removeImage(imageName)
 		return nil
 	},
 }

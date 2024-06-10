@@ -8,6 +8,7 @@ import (
 	"path"
 	"text/tabwriter"
 	"tiny-docker/container"
+	"tiny-docker/utils"
 )
 
 func ListContainers() {
@@ -68,4 +69,17 @@ func getContainerInfo(file os.DirEntry) (*container.Info, error) {
 		return nil, err
 	}
 	return info, nil
+}
+
+func ListImages() {
+	imageDir := utils.ImagePath
+	dir, err := os.ReadDir(imageDir)
+	if err != nil {
+		log.Errorf("read iamges dir %s error %v", imageDir, err)
+	}
+	fmt.Println("image")
+	for _, file := range dir {
+		fullName := file.Name()
+		fmt.Println(fullName[:len(fullName)-4])
+	}
 }
