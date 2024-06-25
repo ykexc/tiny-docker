@@ -28,6 +28,7 @@ func main() {
 		rmCommand,
 		imagesCommand,
 		rmiCommand,
+		networkCommand,
 	}
 
 	app.Before = func(context *cli.Context) error {

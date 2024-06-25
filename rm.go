@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"tiny-docker/container"
+	"tiny-docker/network"
 	"tiny-docker/utils"
 )
 
@@ -22,6 +23,13 @@ func removeContainer(containerId string, force bool) {
 			return
 		}
 		container.DeleteWorkSpace(containerId, containerInfo.Volume)
+		if containerInfo.NetworkName != "" { // 清理网络资源
+			if err = network.Disconnect(containerInfo.NetworkName, containerInfo); err != nil {
+				log.Errorf("Remove container [%s]'s config failed, detail: %v", containerId, err)
+				return
+			}
+		}
+
 	case container.RUNNING:
 		if !force {
 			log.Errorf("Couldn't remove running container [%s], Stop the container before attempting removal or"+
